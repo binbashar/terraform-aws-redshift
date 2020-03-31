@@ -34,6 +34,7 @@ resource "aws_redshift_cluster" "this" {
   # Restore from snapshot
   snapshot_identifier         = var.snapshot_identifier
   snapshot_cluster_identifier = var.snapshot_cluster_identifier
+  owner_account               = var.owner_account
 
   # Snapshots and backups
   final_snapshot_identifier           = var.final_snapshot_identifier
@@ -41,6 +42,15 @@ resource "aws_redshift_cluster" "this" {
   automated_snapshot_retention_period = var.automated_snapshot_retention_period
   preferred_maintenance_window        = var.preferred_maintenance_window
   allow_version_upgrade               = var.allow_version_upgrade
+
+  # Snapshots copy to another region
+  dynamic "snapshot_copy" {
+    for_each = compact([var.snapshot_copy_destination_region])
+    content {
+      destination_region = var.snapshot_copy_destination_region
+      retention_period   = var.automated_snapshot_retention_period
+    }
+  }
 
   # IAM Roles
   iam_roles = var.cluster_iam_roles
